@@ -1,69 +1,112 @@
-const movieInfoElement = document.getElementById("movie-info");
-const posterElement = document.getElementById("poster");
-const titleElement = document.getElementById("title");
-const runtimeElement = document.getElementById("runtime");
-const showtimeElement = document.getElementById("showtime");
-const ticketsAvailableElement = document.getElementById("tickets-available");
-const buyTicketButton = document.getElementById("buy-ticket");
+//Set the url of the API
+const url = "https://flatdango.vercel.app/db.json"
+//fetches data from the API and appends the details of the first movie to the page
+function fetchData() {
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => appendFirstMovie(data.films));
+  }
+  fetchData();
 
-// Fetch movie details for the first movie
-fetch("http://localhost:3000/films/1")
-  .then(response => response.json())
-  .then(movie => {
-    // Update the movie details on the page
-    posterElement.style.backgroundImage = `url(${movie.poster})`;
-    titleElement.textContent = movie.title;
-    runtimeElement.textContent = movie.runtime;
-    showtimeElement.textContent = movie.showtime;
-    ticketsAvailableElement.textContent = movie.capacity - movie.tickets_sold;
-
-    // Update the Buy Ticket button
-    if (movie.tickets_sold === movie.capacity) {
-      buyTicketButton.disabled = true;
-      buyTicketButton.textContent = "Sold Out";
-    }
-  })
-  .catch(error => {
-    console.error("Error fetching movie details:", error);
-  });
-
-// Fetch movie list and populate the films ul element
-fetch("http://localhost:3000/films")
-  .then(response => response.json())
-  .then(movies => {
-    const filmsElement = document.getElementById("films");
-    filmsElement.innerHTML = "";
-
-    // Add each movie to the list
-    movies.forEach(movie => {
-      const li = document.createElement("li");
-      li.textContent = movie.title;
-      li.classList.add("film", "item");
-      filmsElement.appendChild(li);
+  //append details of the firt movie to the page
+  function appendFirstMovie(data) {
+    //select necessary elements
+    let first = data[0];
+    let button1 = document.getElementById("button");
+    button1.innerHTML = "";
+    let image = document.getElementById("poster");
+    let title = document.getElementById("title");
+    let runtime = document.getElementById("runtime");
+    let showtime = document.getElementById("showtime");
+    let tickets = document.getElementById("tickets");
+    let details = document.getElementById("details");
+    //create a button to buy tickets
+    let button = document.createElement("button");
+    button.id = "btn";
+    button.textContent = "Buy Ticket";
+    let total = first.capacity - first.tickets.sold;
+    button.addEventListener("click", () => {
+      //decrease ticket count and update ticket count displayed
+      if (total > 0) {
+        total -= 1;
+        document.getElementById("tickets").innerHTML = total;
+      } else if (total < 1) {
+        //display message if no tickets available
+        document.getElementById("tickets").innerHTML = "*No tickets available";
+      }
     });
-  })
-  .catch(error => {
-    console.error("Error fetching movie list:", error);
-  });
+    //update elements with details of the first movie
+    title.textContent = first.title;
+    runtime.textContent = first.runtime;
+    showtime.textContent = first.showtime;
+    tickets.textContent = first.capacity - first.tickets_sold;
+    details.textContent = first.description;
+    image.src = `
+      ${first.poster}
+      `;
+    button.appendChild(button);
+  }
 
-  buyTicketButton.addEventListener("click", async () => {
-    const response = await fetch('http://localhost:3000/films');
-    const film = await response.json();
-    const ticketsAvailable = film.capacity - film.tickets_sold;
-    
-    if (ticketsAvailable > 0) {
-      // decrease the number of tickets available by 1
-      ticketsAvailable--;
-  
-      // update the UI with the new number of tickets available
-      ticketsAvailableElement.innerText = ticketsAvailable;
-  
-      // show a successful purchased ticket message
-      alert('Ticket purchased successfully!');
-    } else {
-      // show an error message
-      alert('Sorry, there are no more tickets available.');
-    }
-  });
-  
- 
+  //fetches list of movies from the API in the menu section
+  function appendMenu() {
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => menuTitles(data.films));
+  }
+  appendMenu();
+
+  //Displays the titles of the movies in the menu section
+  function menuTitles(data) {
+    data.forEach((item) => {
+      //create a li element for each movie
+      let title = document.createElement("li");
+      title.id = "list";
+      //add an event listener to display the details the clicked movie
+      title.addEventListener("click", () => {
+        const i = item.id;
+        appendIndividualDetails(data[i - 1]);
+      });
+      let menu = document.getElementById("menu");
+      title.textContent = item.title;
+      menu.appendChild(title);
+    });
+  }
+
+  //displays the details of the clicked movie in the main section
+  function appendIndividualDetails(item) {
+    //select the necessary elements
+    let butonn = document.getElementById("button");
+    butonn.innerHTML = "";
+    let image = document.getElementById("poster");
+    let title = document.getElementById("title");
+    let runtime = document.getElementById("runtime");
+    let showtime = document.getElementById("showtime");
+    let tickets = document.getElementById("tickets");
+    let details = document.getElementById("details");
+
+    //create a button to buy tickets
+    let button = document.createElement("button");
+    button.id = "btn";
+    button.textContent = "Buy Ticket";
+    let total = item.capacity - item.tickets_sold;
+    button.addEventListener("click", () => {
+
+      //decreases ticket counts to 0 and updates ticket count displayed
+      if (total > 0) {
+        total -= 1;
+        document.getElementById("tickets").innerHTML = total;
+      } else if (total < 1) {
+        document.getElementById("tickets").innerHTML = "*No tickets available";
+      }
+    });
+
+    title.textContent = item.title;
+    runtime.textContent = item.runtime;
+    showtime.textContent = item.showtime;
+    tickets.textContent = item.capacity - item.tickets_sold;
+    details.textContent = item.details;
+    image.src = `
+      ${item.poster}
+      `;
+    butonn.appendChild(button);
+  }
